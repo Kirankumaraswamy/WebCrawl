@@ -18,5 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('webCrawl/', include('webcrawlUI.urls'))
+    path('webCrawl/', include('webcrawlUI.urls')),
+    path('', include('webcrawlUI.urls')),
 ]

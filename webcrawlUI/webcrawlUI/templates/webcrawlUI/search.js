@@ -1,100 +1,6 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Web Crawl</title>
-    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<style>
-    .banner {
-	text-decoration: underline;
-	background-color: cyan;
-	height: 6em;
-	display: flex;
-	justify-content: center
-}
-
-.form_search {
-	background-color: cyan;
-        height: 6em;
-        display: grid;
-        justify-content: center
-}
-
-* { box-sizing: border-box; }
-body {
-  font: 16px Arial;
-}
-.autocomplete {
-  /*the container must be positioned relative:*/
-  position: relative;
-  display: inline-block;
-}
-input {
-  border: 1px solid transparent;
-  background-color: #f1f1f1;
-  padding: 10px;
-  font-size: 16px;
-}
-input[type=text] {
-  background-color: #f1f1f1;
-  width: 100%;
-}
-input[type=submit] {
-  background-color: DodgerBlue;
-  color: #fff;
-}
-.autocomplete-items {
-  position: absolute;
-  border: 1px solid #d4d4d4;
-  border-bottom: none;
-  border-top: none;
-  z-index: 99;
-  /*position the autocomplete items to be the same width as the container:*/
-  top: 100%;
-  left: 0;
-  right: 0;
-}
-.autocomplete-items div {
-  padding: 10px;
-  cursor: pointer;
-  background-color: #fff;
-  border-bottom: 1px solid #d4d4d4;
-}
-.autocomplete-items div:hover {
-  /*when hovering an item:*/
-  background-color: #e9e9e9;
-}
-.autocomplete-active {
-  /*when navigating through the items using the arrow keys:*/
-  background-color: DodgerBlue !important;
-  color: #ffffff;
-}
-
-.display-container1 {
-    margin-top: 5px;
-}
-
-.display-container11{
-    padding-left: 10px; display: inline-block;
-}
-
-.display-container12 {
-    display: inline-block; float: right; margin-right: 5px;
-}
-
-
-</style>
-</head>
-<body>
-
-<script>
-    $(document).ready(function(){
+$(document).ready(function(){
 	var arr = []
 	var input = document.getElementById("key")
-    var search = document.getElementById("search")
 	var result_string = "";
 	var word = "";
 	var query;
@@ -109,38 +15,23 @@ input[type=submit] {
 
 
 	  });
-
-	  search.addEventListener("click", function(e) {
-		query = $("#key").val();
-        if(query.length > 0) {
-
-            var host = window.location.hostname;
-            var port = window.location.port;
-
-            var url = "http://" + host + ":" + port + "/renderCity/" + query +"/";
-            console.log(url);
-            $.get(url, function (response) {
-                window.location.href = "http://"+ host + ":" + port + "/"+ response.data;
-            });
-        }
-	  });
 	  /*execute a function presses a key on the keyboard:*/
 	  input.addEventListener("keydown", function(e) {
 	      var x = document.getElementById(this.id + "autocomplete-list");
 	      if (x) x = x.getElementsByTagName("div");
-	      if (e.code === "ArrowDown") {
+	      if (e.keyCode == 40) {
 		/*If the arrow DOWN key is pressed,
 		increase the currentFocus variable:*/
 		currentFocus++;
 		/*and and make the current item more visible:*/
 		addActive(x);
-	      } else if (e.code === "ArrowUp") { //up
+	      } else if (e.keyCode == 38) { //up
 		/*If the arrow UP key is pressed,
 		decrease the currentFocus variable:*/
 		currentFocus--;
 		/*and and make the current item more visible:*/
 		addActive(x);
-	      } else if (e.code === "Enter") {
+	      } else if (e.keyCode == 13) {
 		/*If the ENTER key is pressed, prevent the form from being submitted,*/
 		e.preventDefault();
 		if (currentFocus > -1) {
@@ -148,6 +39,7 @@ input[type=submit] {
 		  if (x) x[currentFocus].click();
 		}
 		closeAllLists(e);
+		displayResult();
 	      }
 	  });
 	  function addActive(x) {
@@ -181,6 +73,76 @@ input[type=submit] {
 	    closeAllLists(e.target);
 	});
 
+	function displayResult(){
+
+
+
+		console.log("value is : " + query);
+                if(query.length > 0){
+
+                var host = window.location.hostname;
+                var port = window.location.port;
+
+                var url = "http://"+ host + ":" + port + "/search/" + query;
+                console.log(url);
+                $.get(url, function(response){
+                        var i,j,k;
+                        console.log(response);
+                        arr = []
+                        for(i=0; i< response.results.length; i++){
+                                result_string = "";
+                                word = "";
+                                result_string += "<ul>";
+                                word = response.results[0].key;
+                                arr.push(response.results[i].key);
+
+                                for(j=0; j< response.results[0].data.length; j++){
+
+                                        result_string += "<li><b>"+ response.results[0].data[j].pos +"</b>";
+                                        result_string += "<ol>";
+                                        for(k=0;k<response.results[0].data[j].content.length;k++){
+                                                result_string += "<li>"+response.results[0].data[j].content[k].meaning;
+                                                if(response.results[0].data[j].content[k].example != null && response.results[0].data[j].content[k].example != undefined){
+
+                                                result_string += "</br><i>"+response.results[0].data[j].content[k].example+"</i>";
+                                                }
+                                                result_string += "</li>";
+                                        }
+
+                                        result_string += "</ol></li></br>";
+
+				}
+                                result_string += "</ul></br>";
+				if(response.results[0].synonyms.length > 0){
+					result_string += "<span>Synonyms: ";
+					for(m = 0; m< response.results[0].synonyms.length; m++){
+						if(m == response.results[0].synonyms.length - 1){
+							result_string += "<b>"+response.results[0].synonyms[m] +"</b></span>";
+						}else{
+							result_string += "<b>"+response.results[0].synonyms[m] +"</b>, ";
+						}
+                               	}	 }
+                        }
+
+			if(word != query){
+				document.getElementById("word").innerHTML = "";
+				document.getElementById("result_list").innerHTML = "";
+				result_string = "<div style='text-align: center'><p><b style='font-size: 40px'>"+query+"</b> <span style='font-size: 30px'> not found</span></p></div>";
+				$("#result_list").append(result_string);
+
+			}else{
+				document.getElementById("word").innerHTML = "";
+	                        $("#word").append(word);
+
+        	                document.getElementById("result_list").innerHTML = "";
+                	        $("#result_list").append(result_string);
+
+			}
+		});
+	   }
+	};
+
+
 	function fetchData(){
 
 
@@ -190,14 +152,18 @@ input[type=submit] {
 			var host = window.location.hostname;
 			var port = window.location.port;
 
-			var url = "http://"+ host + ":" + port + "/search/" + query;
+			var url = "http://"+ host + ":" + port + "/api?key=" + query;
 			console.log(url);
 			$.get(url, function(response){
 				var i,j,k;
 				console.log(response);
 				arr = []
-				for(i=0; i< response.data.length; i++){
-					arr.push(response.data[i]);
+				for(i=0; i< response.results.length; i++){
+					result_string = "";
+					word = "";
+					result_string += "<ul>";
+					word = response.results[0].key;
+					arr.push(response.results[i].key);
 				}
 			      var a, b, i, val = input.value;
 			      /*close any already open lists of autocompleted values*/
@@ -229,7 +195,7 @@ input[type=submit] {
 				      (or any other open lists of autocompleted values:*/
 				      closeAllLists();
 					query = input.value;
-
+				      displayResult();
 				  });
 				 a.appendChild(b);
 				}
@@ -242,21 +208,3 @@ input[type=submit] {
 
 
 });
-
-</script>
-
-<div style="background-color: cyan; height: 10em;display: grid; justify-content: center">
-    <h1 style="text-align: center">Grundstück</h1>
-			<!--Make sure the form has the autocomplete function switched off:-->
-                <div>
-                    <div class="autocomplete" style="width:300px;">
-    					<input id="key" type="text" name="key" placeholder="Enter city">
-  				</div>
-                <input type="submit" id="search" value="Search" onclick="fetchData()"></input>
-                </div>
-
-
-		</div>
-{% block page_content %}{% endblock %}
-</body>
-</html>
