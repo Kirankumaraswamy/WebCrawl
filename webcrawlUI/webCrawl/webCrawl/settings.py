@@ -15,6 +15,9 @@ NEWSPIDER_MODULE = 'webCrawl.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'webCrawl (+http://www.yourdomain.com)'
+USER_AGENT =  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
+FEED_FORMAT =  'csv'
+FEED_URI = 'output.csv'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
@@ -31,7 +34,7 @@ DOWNLOAD_DELAY = 1
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+COOKIES_ENABLED = True
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False

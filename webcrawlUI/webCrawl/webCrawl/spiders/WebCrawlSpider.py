@@ -52,7 +52,7 @@ class WebCrawlSpider(scrapy.Spider):
                     elif self.state_tocrawl != "null" and self.state_tocrawl != None and self.state_tocrawl != "":
                         sql = "select w.id, w.weblink, w.city_id, w.city_name from webcrawl.webcrawlui_cities as c, webcrawl.webcrawlui_weblinks as w where c.name=w.city_name and c.state_name='%s';" % (self.state_tocrawl)
                     else:
-                        sql = "select * from webcrawl.webcrawlui_weblinks where city_name='Amberg';"
+                        sql = "select * from webcrawl.webcrawlui_weblinks limit 100"
                     print(sql)
                     n_weblinks = cursor.execute(sql)
                     weblinks = cursor.fetchall()
@@ -61,8 +61,8 @@ class WebCrawlSpider(scrapy.Spider):
 
                 for index, weblink in enumerate(weblinks):
                     # for now I have restricted crawling to only 20 weblinks otherwise google will block the IP for more crawling.
-                    if index == 20:
-                        break
+                    #if index == 20:
+                    #    break
                     try:
                         sql = "delete from webcrawl.webcrawlui_webdata where city_name = '%s';" % (weblink[3])
                         cursor.execute(sql)
@@ -75,7 +75,7 @@ class WebCrawlSpider(scrapy.Spider):
                                          meta={'weblink_id': weblink[0], 'city_name': weblink[3], 'depth': 0})
                     self.count += 1
                     print(self.count)
-                    time.sleep(0.5)
+                    #time.sleep(0.5)
         except:
             print("Error while connecting to MySQL for cities retrieval")
         finally:
@@ -135,7 +135,7 @@ class WebCrawlSpider(scrapy.Spider):
                 connection.close()
                 print("MySQL connection is closed for weblinks addition")
 
-        print(page_content)
+        #print(page_content)
 
         # This decides how much deep we want to crawl the webpages. Recursively we crawl up to this level
         if depth < 2:

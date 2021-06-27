@@ -24,7 +24,7 @@ class GoogleSearchSpider(scrapy.Spider):
         #if the value is null/null it means run crawler for all entries
         self.state_tocrawl = urllib.parse.unquote(state)
         self.city_tocrawl = urllib.parse.unquote(city)
-        #self.city_tocrawl = "Bamberg"
+        #self.city_tocrawl = "Kutzenhausen"
 
 
 
@@ -44,7 +44,7 @@ class GoogleSearchSpider(scrapy.Spider):
                     elif self.state_tocrawl != "null" and self.state_tocrawl != None and self.state_tocrawl != "":
                         sql = "select * from webcrawl.webcrawlui_cities where state_name='%s';" % (self.state_tocrawl)
                     else:
-                        sql = "select * from webcrawl.webcrawlui_cities;"
+                        sql = "select * from webcrawl.webcrawlui_cities order by name asc limit 5"
                     n_cities = cursor.execute(sql)
                     cities = cursor.fetchall()
                 except pymysql.err.DatabaseError as e:
@@ -58,8 +58,8 @@ class GoogleSearchSpider(scrapy.Spider):
                 print("MySQL connection is closed for cities retrieval")
             for index, city in enumerate(cities):
                 #for now I have restricted crawling to only 5 cities otherwise google will block the IP for more crawling.
-                if index == 5:
-                    break
+                #if index == 5:
+                #    break
                 city_name = city[1]
                 city_id = city[0]
                 state_name = city[3]
@@ -69,14 +69,17 @@ class GoogleSearchSpider(scrapy.Spider):
                 urls.append((request, city_id, city_name, query_string))
             print(urls)
         for index, url_param in enumerate(urls):
-            print("Sending request..")
+            print("Sending request %s %s ............................................" %(index, url_param[2]))
             print(url_param[0])
-            yield scrapy.Request(url=url_param[0], callback=self.parse, meta={'city_id': url_param[1], 'city_name': url_param[2], 'query_string': url_param[3]})
+            yield scrapy.Request(url=url_param[0], callback=self.parse,
+                                 headers={'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"},
+                                 meta={'city_id': url_param[1], 'city_name': url_param[2], 'query_string': url_param[3]})
             # adding random sleep to avoid google identifying the crawler as bot
             if index % 100 == 0:
-                sleep_time = random.randint(1, 3)
+
+                sleep_time = random.randint(5, 10)
             else:
-                sleep_time = random.random()
+                sleep_time = random.randint(1, 5)
             time.sleep(sleep_time)
 
 
@@ -100,6 +103,27 @@ class GoogleSearchSpider(scrapy.Spider):
                 self.valid_hits += 1
                 search_list.append(link)
                 print(link)
+
+        # In some cases the domain doesn't contains city name
+        if len(search_list) == 0:
+            for link in xlink.extract_links(response):
+                # sample valid url from google search
+                # discard https://www.google.com/url?q= at the beginning
+                url = urllib.parse.unquote(link.url)
+                if "?q=" in url:
+                    url = url.split("?q=")[1]
+
+                # if there is http in the above url then split with :// so that we will get domain name
+                # if there is no http or https in the url it means we can discard
+                if "http://" in url or "https://" in url:
+                    if url.find("google") == -1:
+                        self.valid_hits += 1
+                        search_list.append(link)
+                        print(link)
+                        #considering only first 2 results
+                        if len(search_list) >= 2:
+                            break
+
         print("Google search for: ", query_string)
         print("Google returned number of links: ", len(xlink.extract_links(response)))
         print("valid links: ", self.valid_hits)
@@ -186,7 +210,7 @@ class GoogleSearchSpider(scrapy.Spider):
         #yield response.follow(url[i], callback=self.parse)
 
 
-#"""
+"""
 import time
 
 c = CrawlerProcess({
@@ -199,5 +223,4 @@ c.crawl(GoogleSearchSpider)
 s_time = time.time()
 c.start()
 e_time = time.time()
-print("Total time: ", str(e_time - s_time))
-#"""
+print("Total time: ", str(e_time - s_time))"""
