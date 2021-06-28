@@ -36,9 +36,8 @@ if __name__ == "__main__":
                 break
 
         if not scrapy_running:
-            print("Scrapyd is not started. Starting scrapyd now..........")
-            os.system("start scrapyd")
-            continue
+            print("Scrapyd is not started. Please start scrapyd and then run again.")
+            break
 
         print("current time: %s" %(datetime.today()))
         print("Going on sleep for %s seconds. Next run is at %s" % (secs, (datetime.today() + timedelta(0, secs))))

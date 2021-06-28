@@ -1,9 +1,8 @@
 import scrapy
 import os
 from pathlib import Path
-import urllib
-from scrapy.linkextractors import LinkExtractor
 import pymysql.err
+from utils import *
 
 
 class GenerateCityNamesSpider(scrapy.Spider):
@@ -18,14 +17,14 @@ class GenerateCityNamesSpider(scrapy.Spider):
             path = Path(os.path.dirname(__file__)).parent.parent.parent
             f = open(path.joinpath("files/states.txt"), "r", encoding="utf-8")
             try:
-                connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+                connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
                 if connection is not None:
                     db_Info = connection.get_server_info()
                     print("Connected to MySQL Server version ", db_Info)
 
                     cursor = connection.cursor()
                     try:
-                        sql = "delete from webcrawl.webcrawlui_states;"
+                        sql = "delete from webcrawl.webcrawlUI_states;"
                         cursor.execute(sql)
                     except pymysql.err.DatabaseError as e:
                         print("Error while deleting from states: ", str(e))
@@ -39,14 +38,14 @@ class GenerateCityNamesSpider(scrapy.Spider):
                             weblink = data[1].strip()
                         state_map[name] = [index, weblink]
                         try:
-                            sql = """delete from webcrawl.webcrawlui_cities"""
+                            sql = """delete from webcrawl.webcrawlUI_cities"""
                             cursor.execute(sql)
                             connection.commit()
                         except pymysql.err.DatabaseError as e:
                             print("Error while deleting cities: ", str(e))
 
                         try:
-                            sql = "insert into webcrawl.webcrawlui_states(id, name, weblink) values %s;" % (
+                            sql = "insert into webcrawl.webcrawlUI_states(id, name, weblink) values %s;" % (
                                 (index, name, weblink),)
                             cursor.execute(sql)
                             connection.commit()
@@ -87,29 +86,22 @@ class GenerateCityNamesSpider(scrapy.Spider):
         type3 = response.css('tr td:nth-child(1) a::attr(title)').getall()
         cities = type1 + type2 + type3
 
-        path = Path(os.path.dirname(__file__)).parent.parent.parent
-        f = open(path.joinpath("files/cities.txt"), "w")
-        for city in cities:
-            f.write(city)
-            f.write("\n")
-        f.close()
-
         if len(cities) > 0:
 
             try:
-                connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+                connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
                 if connection is not None:
                     db_Info = connection.get_server_info()
                     print("Connected to MySQL Server version ", db_Info)
 
                     cursor = connection.cursor()
-                    sql = "delete from webcrawl.webcrawlui_cities where state_id = %s;" % (state_id)
+                    sql = "delete from webcrawl.webcrawlUI_cities where state_id = %s;" % (state_id)
                     cursor.execute(sql)
                     print(len(cities))
                     index = 1
                     for city in cities:
                         try:
-                            sql = "insert into webcrawl.webcrawlui_cities(state_id, name, state_name) values %s;" % (
+                            sql = "insert into webcrawl.webcrawlUI_cities(state_id, name, state_name) values %s;" % (
                             (state_id, city.strip(), state_name),)
                             cursor.execute(sql)
                             index += 1
@@ -139,4 +131,5 @@ c = CrawlerProcess({
 })
 c.settings["LOG_ENABLED"] = True
 c.crawl(GenerateCityNamesSpider)
-c.start()"""
+c.start()
+"""

@@ -79,8 +79,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'webcrawl',
-        'USER': 'root',
-        'PASSWORD': 'root',
+        'USER': 'webcrawl',
+        'PASSWORD': 'webcrawl',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }

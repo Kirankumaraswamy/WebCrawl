@@ -12,6 +12,5 @@ urlpatterns = [
     path('<str:name>/', views.cities),
     path('<str:state_name>/<str:city_name>/', views.city)
 ]
-
 obj = QGramIndex(3)
 obj.build()

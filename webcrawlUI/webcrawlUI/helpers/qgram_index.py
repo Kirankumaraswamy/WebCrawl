@@ -1,18 +1,10 @@
-"""
-Copyright 2019, University of Freiburg
-Chair of Algorithms and Data Structures.
-Hannah Bast <bast@cs.uni-freiburg.de>
-Claudius Korzen <korzen@cs.uni-freiburg.de>
-Patrick Brosi <brosi@cs.uni-freiburg.de>
-"""
 import sys
 import time
 import pymysql
 
-# Uncomment to use C version of prefix edit distance calculation.
-# You have to install the module using the provided ped_c/setup.py
-# first.
 from webcrawlUI.helpers.ped_python import ped
+from django.conf import settings
+
 
 # Comment to use C version of prefix edit distance calculation
 
@@ -27,7 +19,7 @@ class QGramIndex:
     def getInstance():
         """ Static access method. """
         if QGramIndex.__instance == None:
-            QGramIndex()
+            QGramIndex(3)
         return QGramIndex.__instance
 
     def __init__(self, q):
@@ -59,16 +51,20 @@ class QGramIndex:
         For example, the 3-gram "rei" appears 1 time in entity 1 ("frei") and
         one time in entity 2 ("brei"), so its inverted list is
         [(1, 1), (2, 1)].'''
-
+        connection = None
+        HOST = settings.DATABASES['default']['HOST']
+        USER = settings.DATABASES['default']['USER']
+        PASSWORD = settings.DATABASES['default']['PASSWORD']
+        DATABASE = settings.DATABASES['default']['NAME']
         try:
-            connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+            connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
             if connection is not None:
                 db_Info = connection.get_server_info()
                 print("Connected to MySQL Server version ", db_Info)
 
                 cursor = connection.cursor()
                 try:
-                    sql = "select * from webcrawl.webcrawlui_cities;"
+                    sql = "select * from webcrawl.webcrawlUI_cities;"
                     n_cities = cursor.execute(sql)
                     cities = cursor.fetchall()
 

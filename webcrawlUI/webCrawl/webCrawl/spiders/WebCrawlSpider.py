@@ -1,16 +1,11 @@
 import scrapy
-from bs4 import BeautifulSoup
-import nltk
-from scrapy.selector import Selector
 from w3lib.html import remove_tags, remove_tags_with_content
 import re
 import os
 from pathlib import Path
 import urllib
-from scrapy.linkextractors import LinkExtractor
 import pymysql.err
-import time
-import json
+from utils import *
 
 class WebCrawlSpider(scrapy.Spider):
     name = "webCrawl"
@@ -39,20 +34,20 @@ class WebCrawlSpider(scrapy.Spider):
         urls = []
 
         try:
-            connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+            connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
             if connection is not None:
                 db_Info = connection.get_server_info()
                 print("Connected to MySQL Server version ", db_Info)
 
                 cursor = connection.cursor()
                 try:
-                    sql = "select * from webcrawl.webcrawlui_weblinks where city_name='Amberg';"
+                    sql = "select * from webcrawl.webcrawlUI_weblinks where city_name='Amberg';"
                     if self.city_tocrawl != "null" and self.city_tocrawl != None and self.city_tocrawl != "":
-                        sql = "select * from webcrawl.webcrawlui_weblinks where city_name='%s';" % (self.city_tocrawl)
+                        sql = "select * from webcrawl.webcrawlUI_weblinks where city_name='%s';" % (self.city_tocrawl)
                     elif self.state_tocrawl != "null" and self.state_tocrawl != None and self.state_tocrawl != "":
-                        sql = "select w.id, w.weblink, w.city_id, w.city_name from webcrawl.webcrawlui_cities as c, webcrawl.webcrawlui_weblinks as w where c.name=w.city_name and c.state_name='%s';" % (self.state_tocrawl)
+                        sql = "select w.id, w.weblink, w.city_id, w.city_name from webcrawl.webcrawlUI_cities as c, webcrawl.webcrawlUI_weblinks as w where c.name=w.city_name and c.state_name='%s';" % (self.state_tocrawl)
                     else:
-                        sql = "select * from webcrawl.webcrawlui_weblinks limit 100"
+                        sql = "select * from webcrawl.webcrawlUI_weblinks limit 20;"
                     print(sql)
                     n_weblinks = cursor.execute(sql)
                     weblinks = cursor.fetchall()
@@ -64,17 +59,17 @@ class WebCrawlSpider(scrapy.Spider):
                     #if index == 20:
                     #    break
                     try:
-                        sql = "delete from webcrawl.webcrawlui_webdata where city_name = '%s';" % (weblink[3])
+                        sql = "delete from webcrawl.webcrawlUI_webdata where city_name = '%s';" % (weblink[3])
                         cursor.execute(sql)
                         connection.commit()
                     except pymysql.err.DatabaseError as e:
                         print("Error while deleting webdata: ", str(e))
 
                     print("Sending request..")
-                    yield scrapy.Request(url=weblink[1], callback=self.parse,
-                                         meta={'weblink_id': weblink[0], 'city_name': weblink[3], 'depth': 0})
+                    print(weblink[1])
+                    yield scrapy.Request(url=weblink[2], callback=self.parse,
+                                         meta={'weblink_id': weblink[0], 'city_name': weblink[1], 'depth': 0})
                     self.count += 1
-                    print(self.count)
                     #time.sleep(0.5)
         except:
             print("Error while connecting to MySQL for cities retrieval")
@@ -108,7 +103,7 @@ class WebCrawlSpider(scrapy.Spider):
         page_content = re.sub('\s+', ' ', content)
 
         try:
-            connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+            connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
             if connection is not None:
                 db_Info = connection.get_server_info()
                 print("Connected to MySQL Server version ", db_Info)
@@ -117,7 +112,7 @@ class WebCrawlSpider(scrapy.Spider):
 
                 try:
 
-                    sql = "insert into webcrawl.webcrawlui_webdata(weblink, text, city_name) values %s;" % (
+                    sql = "insert into webcrawl.webcrawlUI_webdata(weblink, text, city_name) values %s;" % (
                             (response.url, content, city_name),)
                     cursor.execute(sql)
                     print("Adding to webdata: ", (city_name, weblink_id))
@@ -155,8 +150,6 @@ class WebCrawlSpider(scrapy.Spider):
                     yield response.follow(url, callback=self.parse,
                                       meta={'weblink_id': weblink_id, 'city_name': city_name, 'depth': depth + 1})
                     self.count += 1
-                    print(self.count)
-
 """
 from scrapy.crawler import CrawlerProcess
 
@@ -167,8 +160,8 @@ c = CrawlerProcess({
 })
 c.settings["LOG_ENABLED"] = False
 c.crawl(WebCrawlSpider)
-c.start()
-"""
+c.start()"""
+
 
 
 

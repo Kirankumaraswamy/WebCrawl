@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 import requests
-from webCrawl.sample import hello
 import sys
 from webcrawlUI.models import States, Cities, Weblinks, WebData
 from webcrawlUI.helpers.qgram_index import QGramIndex
@@ -48,6 +47,7 @@ def searchCities(request, values):
     obj = QGramIndex.getInstance()
     prefix = obj.normalize(values)
     delta = int(len(prefix) / 4)
+    print(obj.wiki_data)
     matches = obj.find_matches(prefix, delta)
     responseData = {
         'data': matches

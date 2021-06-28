@@ -1,15 +1,11 @@
 import random
 
 import scrapy
-import os
-from pathlib import Path
 import urllib
 from scrapy.linkextractors import LinkExtractor
 import pymysql.err
 import time
-import json
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import inside_project
+from utils import *
 
 class GoogleSearchSpider(scrapy.Spider):
     name = "googleSearch"
@@ -31,20 +27,20 @@ class GoogleSearchSpider(scrapy.Spider):
     def start_requests(self):
         urls = []
         try:
-            connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+            connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
             if connection is not None:
                 db_Info = connection.get_server_info()
                 print("Connected to MySQL Server version ", db_Info)
 
                 cursor = connection.cursor()
                 try:
-                    sql = "select * from webcrawl.webcrawlui_cities where name='Amberg';"
+                    sql = "select * from webcrawl.webcrawlUI_cities where name='Amberg';"
                     if self.city_tocrawl != "null" and self.city_tocrawl != None and self.city_tocrawl != "":
-                        sql = "select * from webcrawl.webcrawlui_cities where name='%s';" % (self.city_tocrawl)
+                        sql = "select * from webcrawl.webcrawlUI_cities where name='%s';" % (self.city_tocrawl)
                     elif self.state_tocrawl != "null" and self.state_tocrawl != None and self.state_tocrawl != "":
-                        sql = "select * from webcrawl.webcrawlui_cities where state_name='%s';" % (self.state_tocrawl)
+                        sql = "select * from webcrawl.webcrawlUI_cities where state_name='%s';" % (self.state_tocrawl)
                     else:
-                        sql = "select * from webcrawl.webcrawlui_cities order by name asc limit 5"
+                        sql = "select * from webcrawl.webcrawlUI_cities;"
                     n_cities = cursor.execute(sql)
                     cities = cursor.fetchall()
                 except pymysql.err.DatabaseError as e:
@@ -66,13 +62,13 @@ class GoogleSearchSpider(scrapy.Spider):
                 query_string = city_name + " " + "geminde baugrundstück"
                 encoded_query_string = urllib.parse.quote(query_string, safe="")
                 request = "https://www.google.com/search?q=" + encoded_query_string
+                #request = "https://www.google.com/search?q=Aach+%28bei+Trier%29+geminde+baugrundst%C3%BCck%26token%3D77c1f767bc31859fee1ffe041343fa48%26allowcookies%3DACCEPTEER%2BALLE%2BCOOKIES&pli=1"
                 urls.append((request, city_id, city_name, query_string))
             print(urls)
         for index, url_param in enumerate(urls):
             print("Sending request %s %s ............................................" %(index, url_param[2]))
             print(url_param[0])
             yield scrapy.Request(url=url_param[0], callback=self.parse,
-                                 headers={'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1"},
                                  meta={'city_id': url_param[1], 'city_name': url_param[2], 'query_string': url_param[3]})
             # adding random sleep to avoid google identifying the crawler as bot
             if index % 100 == 0:
@@ -129,14 +125,14 @@ class GoogleSearchSpider(scrapy.Spider):
         print("valid links: ", self.valid_hits)
 
         try:
-            connection = pymysql.connect(host='localhost', user='root', password='root', database="webcrawl")
+            connection = pymysql.connect(host=HOST, user=USER, password=PASSWORD, database=DATABASE)
             if connection is not None:
                 db_Info = connection.get_server_info()
                 print("Connected to MySQL Server version ", db_Info)
 
                 cursor = connection.cursor()
                 try:
-                    sql = "delete from webcrawl.webcrawlui_weblinks where city_id = %s;" % (city_id)
+                    sql = "delete from webcrawl.webcrawlUI_weblinks where city_id = %s;" % (city_id)
                     cursor.execute(sql)
                     connection.commit()
                 except pymysql.err.DatabaseError as e:
@@ -160,7 +156,7 @@ class GoogleSearchSpider(scrapy.Spider):
                         url = url[url.index("http"):]
                         url = url.split("+&")[0]
 
-                        sql = "insert into webcrawl.webcrawlui_weblinks(city_id, city_name, weblink) values %s;" % (
+                        sql = "insert into webcrawl.webcrawlUI_weblinks(city_id, city_name, weblink) values %s;" % (
                             (city_id, city_name, url),)
                         cursor.execute(sql)
                         print("Adding to weblinks: ", (city_id, city_name, url))
@@ -208,7 +204,6 @@ class GoogleSearchSpider(scrapy.Spider):
 
 
         #yield response.follow(url[i], callback=self.parse)
-
 
 """
 import time
