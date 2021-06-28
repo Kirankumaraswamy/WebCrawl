@@ -1,23 +1,23 @@
 The following project has two sub projects. One is scrapy project to perform webcrawling and another a DJango project
 to display the results from the webcrawling. The data will be saved in mysql database.
-#One time initial setup
-###1. Install mysql server
+# One time initial setup
+### 1. Install mysql server
 ```
 sudo apt install mysql-server
 sudo apt-get install libmysqlclient-dev
 ```
 
-###2. create python env and install the packages using requirements.txt file
+### 2. create python env and install the packages using requirements.txt file
 ```
 pip install -r requirements.txt
 ```
 
-###3. create database and run migrations
+### 3. create database and run migrations
 ```
 create database webcrawl;
 ```
 
-###4. run migrations
+### 4. run migrations
 #### These commands create the tables
 ```
 cd webcrawlUI/webcrawlApp/
@@ -25,27 +25,27 @@ python manage.py makemigrations webcrawlUI
 python manage.py migrate webcrawlUI
 ```
 
-###5. select the database in mysql and generate the entries using the mysql file provided inside the webCrawl directory
+### 5. select the database in mysql and generate the entries using the mysql file provided inside the webCrawl directory
 #### This step is optional. This loads the data from a pre-existed mysql file. Otherwise you have to run spiders manually to create the data.
 ```
 use webcrawl;
 source webcrawl_db.sql
 ```
 
-###6. add mysql database name, username and password in the file webcrawlUI/webcrawlApp/settings.py
+### 6. add mysql database name, username and password in the file webcrawlUI/webcrawlApp/settings.py
 
-###7. update the mysql database name, username and password in webcrawlUI/webCrawl/utils.py
+### 7. update the mysql database name, username and password in webcrawlUI/webCrawl/utils.py
 
 ### 8.deploying the scrapy spiders which perform crawling
 ```
 cd webcrawlUI/webCrawl
 ```
-####type scrapyd in the above directory. This will start the scrapyd server
+#### type scrapyd in the above directory. This will start the scrapyd server
 ```
 scrapyd
 python setup.py bdist_egg
 ```
-####scrapy-deploy command sometimes is not recognized. Hence give full path of the executable from your python environment.
+#### scrapy-deploy command sometimes is not recognized. Hence give full path of the executable from your python environment.
 ```
 python /home/kiran/kiran/webCrawlProject/WebCrawl/venv/bin/scrapyd-deploy local-target -p webCrawl 
 ```
@@ -55,7 +55,7 @@ python /home/kiran/kiran/webCrawlProject/WebCrawl/venv/bin/scrapyd-deploy local-
 
 
 # Running the application
-###1. Start the DJango server and view the application in the browser
+### 1. Start the DJango server and view the application in the browser
 ```
 cd webcrawlUI
 python manage.py runserver
