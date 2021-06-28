@@ -65,7 +65,7 @@ python manage.py runserver
 ```
 cd webcrawlUI/webCrawl
 ```
-####type scrapyd in the above directory. This will start the scrapyd server
+#### start the scrapyd server and execute the crawling script. The crawling process runs  immediately on running the script. Later it runs everyday at 1 AM. This script can be modified based on our need.
 ```
 scrapyd
 python webcrawl.py
